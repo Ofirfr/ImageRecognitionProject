@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Image Classifier</title>
+	<style>
+		body {
+			font-family: Arial, sans-serif;
+			background-color: #f0f0f0;
+			margin: 0;
+		}
+	
+		h1 {
+			text-align: center;
+			margin-top: 50px;
+			font-size: 36px;
+			color: #333;
+		}
+	
+		form {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			margin-top: 30px;
+		}
+	
+		input[type="file"] {
+			display: none;
+		}
+	
+		label {
+			background-color: #4CAF50;
+			color: white;
+			padding: 12px 20px;
+			border-radius: 10px;
+			font-size: 18px;
+			cursor: pointer;
+			transition: background-color 0.3s ease;
+		}
+	
+		label:hover {
+			background-color: #3e8e41;
+		}
+	
+		#image-preview {
+			display: none;
+			width: 400px;
+			height: 400px;
+			object-fit: cover;
+			margin-top: 30px;
+			border-radius: 10px;
+			box-shadow: 5px 5px 20px rgba(0, 0, 0, 0.1);
+		}
+	
+		#result {
+			display: none;
+			margin-top: 30px;
+			font-size: 24px;
+			font-weight: bold;
+			color: #333;
+			text-align: center;
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			transform: translate(-50%, -50%);
+			max-width: 90%;
+			padding: 10px 20px;
+			background-color: #fff;
+			border-radius: 10px;
+			box-shadow: 5px 5px 20px rgba(0, 0, 0, 0.1);
+		}
+		button#clear-button {
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
+    padding: 20px;
+    font-size: 24px;
+    color: #fff;
+    background-color: #ff0000;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    outline: none;
+}
+
+	</style>
+	
+</head>
+<body>
+	<h1>Image Classifier</h1>
+	<form method="post" enctype="multipart/form-data" action="{{ url_for('predict') }}">
+		<label for="file-input">Choose an image</label>
+		<input type="file" id="file-input" name="file">
+		<img id="image-preview">
+		<button type="submit">Predict</button>
+	</form>
+
+	<div id="result"></div>
+	<button id="clear-button" type="button" name="clear-button">Clear</button>
+
+	<script>
+		const fileInput = document.getElementById('file-input');
+const imagePreview = document.getElementById('image-preview');
+
+fileInput.addEventListener('change', function() {
+    const file = this.files[0];
+
+    if (file) {
+        const reader = new FileReader();
+
+        reader.addEventListener('load', function() {
+            imagePreview.src = reader.result;
+            imagePreview.style.display = 'block';
+        });
+
+        reader.readAsDataURL(file);
+    }
+});
+
+function showResult(result) {
+    const resultDiv = document.getElementById('result');
+    resultDiv.innerText = "Prediction is: " + result;
+    resultDiv.style.display = 'block';
+}
+
+const clearButton = document.getElementById('clear-button');
+
+clearButton.addEventListener('click', function() {
+	const resultDiv = document.getElementById('result');
+    imagePreview.src = "";
+    imagePreview.style.display = 'none';
+    resultDiv.innerText = "";
+    resultDiv.style.display = 'none';
+});
+
+
+const form = document.querySelector('form');
+form.addEventListener('submit', function(event) {
+    event.preventDefault();
+
+    const formData = new FormData(form);
+
+    fetch('/predict', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        showResult(data.result);
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+});
+
+	</script>
+</body>
+</html>
